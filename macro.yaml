@@ -1,0 +1,65 @@
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+
+  TransformFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      InlineCode: |
+        import json
+        import uuid
+
+        s3_readwrite_template = '''
+        {
+        "PolicyName": "S3-Policy-<UUID>",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "s3:GetObject",
+              "Resource": <INPUT>
+            },
+            {
+              "Effect": "Allow",
+              "Action": "s3:PutObject",
+              "Resource": <OUTPUT>
+            }
+          ]
+        }
+        }
+        '''
+
+        def resources(buckets):
+          if buckets == "*":
+            return "\"*\""
+          else:
+            r = []
+            for bucket in buckets.split(","):
+              r.append("\"arn:aws:s3:::%s/*\"" % bucket.strip())
+            return "[%s]" % ",".join(r)
+
+        def handler(event, context):
+          r = {}
+          r['requestId'] = event['requestId']
+          r['status'] = 'success'
+
+          input = resources(event['params']['Source'])
+          policytemplate = s3_readwrite_template.replace("<INPUT>", input)
+
+          output = resources(event['params']['Destination'])
+          policytemplate = policytemplate.replace("<OUTPUT>", output)
+
+          uuidval = str(uuid.uuid4())
+          policytemplate = policytemplate.replace("<UUID>", uuidval)
+
+          r['fragment'] = json.loads(policytemplate)
+          return r
+      Handler: index.handler
+      Runtime: python3.7
+  
+  Transform:
+    Type: AWS::CloudFormation::Macro
+    Properties:
+      Name: S3Policy
+      FunctionName: !GetAtt TransformFunction.Arn
