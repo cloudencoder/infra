@@ -59,7 +59,7 @@ Parameters:
 
   WorkerUrl:
     Type: String
-    Default: https://cloudencoder-downloads.s3.eu-west-2.amazonaws.com/worker.v0.1.tar
+    Default: https://cloudencoder-downloads.s3.eu-west-2.amazonaws.com/latest.tar
     Description: The URL where to download the worker application
 
 Conditions:
