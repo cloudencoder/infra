@@ -67,4 +67,4 @@ $ curl -u admin:admin -d @job.json https://m60l4dr8f8.execute-api.eu-west-2.amaz
 When the job has finished, you'll receive an email confirmation.
 
 
-Simon Buckle, simon@webteq.eu
+Simon Buckle, simon@webteq.uk
